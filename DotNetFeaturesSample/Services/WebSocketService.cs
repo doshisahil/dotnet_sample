@@ -90,20 +90,31 @@ public class WebSocketService : BackgroundService, IWebSocketService
         _cancellationTokenSource?.Cancel();
         
         // Close all connected clients
+        List<WebSocket> clientsToClose;
         lock (_clientsLock)
         {
-            foreach (var client in _connectedClients.ToList())
-            {
-                try
-                {
-                    client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server shutting down", CancellationToken.None);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error closing WebSocket client");
-                }
-            }
+            clientsToClose = _connectedClients.ToList();
             _connectedClients.Clear();
+        }
+        var closeTasks = new List<Task>();
+        foreach (var client in clientsToClose)
+        {
+            try
+            {
+                closeTasks.Add(client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server shutting down", CancellationToken.None));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error closing WebSocket client");
+            }
+        }
+        try
+        {
+            await Task.WhenAll(closeTasks);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error awaiting client close tasks");
         }
 
         _httpListener?.Stop();
