@@ -85,20 +85,20 @@ public class TelemetryService : ITelemetryService
             await _context.SaveChangesAsync();
             
             // Record metrics
-            var tags = new Dictionary<string, object?>
+            var tagList = new TagList
             {
-                ["endpoint"] = endpoint,
-                ["method"] = method,
-                ["status_code"] = statusCode.ToString(),
-                ["user_id"] = userId.ToString()
+                { "endpoint", endpoint },
+                { "method", method },
+                { "status_code", statusCode.ToString() },
+                { "user_id", userId.ToString() }
             };
             
-            _apiCallCounter.Add(1, [.. tags]);
-            _apiDurationHistogram.Record(durationMs, [.. tags]);
+            _apiCallCounter.Add(1, tagList);
+            _apiDurationHistogram.Record(durationMs, tagList);
             
             if (statusCode >= 400)
             {
-                _errorCounter.Add(1, [.. tags]);
+                _errorCounter.Add(1, tagList);
             }
         }
         catch (Exception ex)
