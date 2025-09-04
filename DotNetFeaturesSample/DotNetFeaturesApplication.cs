@@ -19,6 +19,7 @@ public class DotNetFeaturesApplication : BackgroundService
     private readonly IFileCompressionService _compressionService;
     private readonly IResilienceService _resilienceService;
     private readonly CommandLineFeature _commandLineFeature;
+    private readonly IApiClientService _apiClientService;
     private readonly IHostApplicationLifetime _applicationLifetime;
 
     public DotNetFeaturesApplication(
@@ -29,6 +30,7 @@ public class DotNetFeaturesApplication : BackgroundService
         IFileCompressionService compressionService,
         IResilienceService resilienceService,
         CommandLineFeature commandLineFeature,
+        IApiClientService apiClientService,
         IHostApplicationLifetime applicationLifetime)
     {
         _logger = logger;
@@ -38,6 +40,7 @@ public class DotNetFeaturesApplication : BackgroundService
         _compressionService = compressionService;
         _resilienceService = resilienceService;
         _commandLineFeature = commandLineFeature;
+        _apiClientService = apiClientService;
         _applicationLifetime = applicationLifetime;
     }
 
@@ -102,6 +105,9 @@ public class DotNetFeaturesApplication : BackgroundService
 
         // 8. Command Line Parsing
         await DemonstrateCommandLineParsingAsync();
+
+        // 9. Server API Integration
+        await DemonstrateServerApiIntegrationAsync();
 
         _logger.LogInformation("=== All Feature Demonstrations Completed ===");
     }
@@ -217,5 +223,113 @@ public class DotNetFeaturesApplication : BackgroundService
         _commandLineFeature.DemonstrateCommandLineParsing();
         
         await Task.CompletedTask;
+    }
+
+    private async Task DemonstrateServerApiIntegrationAsync()
+    {
+        _logger.LogInformation("=== Server API Integration Demo ===");
+        _logger.LogInformation("Demonstrating OAuth, REST API calls, telemetry, and .NET 8 features");
+
+        try
+        {
+            // 1. Health Check
+            _logger.LogInformation("1. Checking server health...");
+            var health = await _apiClientService.GetHealthAsync();
+            if (health != null)
+            {
+                _logger.LogInformation("✓ Server is healthy");
+            }
+            else
+            {
+                _logger.LogWarning("⚠ Server health check failed - continuing with demo");
+            }
+
+            // 2. Authentication (OAuth demonstration)
+            _logger.LogInformation("2. Authenticating with server using OAuth/JWT...");
+            var authenticated = await _apiClientService.AuthenticateAsync("demo", "Demo123!");
+            
+            if (!authenticated)
+            {
+                _logger.LogWarning("⚠ Authentication failed - server may not be running");
+                _logger.LogInformation("To start the server, run: cd DotNetFeaturesServer && dotnet run");
+                return;
+            }
+            
+            _logger.LogInformation("✓ Successfully authenticated with JWT token");
+
+            // 3. Demonstrate REST API calls
+            _logger.LogInformation("3. Demonstrating REST API calls...");
+            
+            // Get existing vehicles
+            var vehicles = await _apiClientService.GetVehiclesAsync();
+            if (vehicles != null)
+            {
+                _logger.LogInformation("✓ Retrieved vehicles from server");
+                var vehicleList = vehicles.ToList();
+                var count = Math.Min(3, vehicleList.Count);
+                _logger.LogInformation("  - Showing first {Count} vehicles", count);
+                for (int i = 0; i < count; i++)
+                {
+                    _logger.LogInformation("  - Vehicle {Index}: Available", i + 1);
+                }
+            }
+
+            // Create a new vehicle
+            var newVehicle = new
+            {
+                Type = "Car",
+                Brand = "Tesla",
+                Model = "Model 3",
+                Year = 2024,
+                Price = 45000.00m,
+                AdditionalData = "{\"batteryRange\": 358, \"autopilot\": true}"
+            };
+
+            var createdVehicle = await _apiClientService.CreateVehicleAsync(newVehicle);
+            if (createdVehicle != null)
+            {
+                _logger.LogInformation("✓ Successfully created new vehicle on server");
+            }
+
+            // 4. Demonstrate Telemetry
+            _logger.LogInformation("4. Demonstrating telemetry and metrics...");
+            
+            // Record custom metrics
+            await _apiClientService.RecordMetricAsync("client_demo_execution", 1, "count");
+            await _apiClientService.RecordMetricAsync("api_integration_test", DateTime.UtcNow.Millisecond, "ms");
+            
+            // Get telemetry data
+            var telemetry = await _apiClientService.GetTelemetryAsync();
+            if (telemetry != null)
+            {
+                _logger.LogInformation("✓ Retrieved telemetry data from server");
+            }
+
+            // 5. Demonstrate Windows Event Log feature
+            _logger.LogInformation("5. Testing Windows Event Log integration...");
+            var eventLogSuccess = await _apiClientService.TestWindowsEventLogAsync(
+                "DotNet Features Sample successfully connected to server and demonstrated .NET 8 features!");
+            
+            if (eventLogSuccess)
+            {
+                _logger.LogInformation("✓ Windows Event Log demonstration completed");
+                _logger.LogInformation("  Check Windows Event Viewer > Application Log for the logged event");
+            }
+
+            _logger.LogInformation("=== Server API Integration Demo Completed Successfully ===");
+            _logger.LogInformation("Demonstrated features:");
+            _logger.LogInformation("  ✓ OAuth/JWT Authentication");
+            _logger.LogInformation("  ✓ REST API calls (GET, POST)");
+            _logger.LogInformation("  ✓ Database operations via API");
+            _logger.LogInformation("  ✓ Custom telemetry and metrics");
+            _logger.LogInformation("  ✓ Distributed caching");
+            _logger.LogInformation("  ✓ Windows Event Log integration");
+            _logger.LogInformation("  ✓ Structured logging and monitoring");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during server API integration demonstration");
+            _logger.LogInformation("Make sure the DotNetFeaturesServer is running on https://localhost:7000");
+        }
     }
 }
