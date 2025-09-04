@@ -37,6 +37,10 @@ builder.Services.AddScoped<IFileCompressionService, FileCompressionService>();
 builder.Services.AddScoped<IResilienceService, ResilienceService>();
 builder.Services.AddScoped<CommandLineFeature>();
 
+// HTTP Client for server communication
+builder.Services.AddHttpClient<IApiClientService, ApiClientService>();
+builder.Services.AddScoped<IApiClientService, ApiClientService>();
+
 // Register hosted services (Background Services)
 builder.Services.AddHostedService<DotNetFeaturesApplication>();
 builder.Services.AddHostedService<FileWatcherService>();
