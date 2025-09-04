@@ -7,4 +7,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../DotNetFeaturesServer/DotNetFeaturesServer.csproj" />
+    <ProjectReference Include="../DotNetFeaturesSample/DotNetFeaturesSample.csproj" />
+  </ItemGroup>
+
 </Project>

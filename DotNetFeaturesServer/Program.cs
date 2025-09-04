@@ -18,9 +18,10 @@ builder.Configuration.AddCommandLine(args);
 // Add Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    if (builder.Configuration.GetConnectionString("DefaultConnection") != null)
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrEmpty(connectionString))
     {
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+        options.UseSqlServer(connectionString);
     }
     else
     {
@@ -202,3 +203,6 @@ logger.LogInformation("Health Check available at: /health");
 logger.LogInformation("API Documentation available at: /swagger");
 
 app.Run();
+
+// Make the Program class accessible for testing
+public partial class Program { }
