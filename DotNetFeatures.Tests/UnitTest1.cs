@@ -25,11 +25,7 @@ public class ServerIntegrationTests : IClassFixture<WebApplicationFactory<Progra
             builder.ConfigureServices(services =>
             {
                 // Remove the real database and add in-memory database for testing
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                if (descriptor != null)
-                {
-                    services.Remove(descriptor);
-                }
+                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
 
                 services.AddDbContext<ApplicationDbContext>(options =>
                 {
