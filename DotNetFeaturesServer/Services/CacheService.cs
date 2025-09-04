@@ -158,14 +158,16 @@ public class CacheService : ICacheService
         try
         {
             _logger.LogInformation("Clearing all cache entries");
-            
-            // Memory cache doesn't have a clear all method, so we need to dispose and recreate
-            // For now, we'll just log that it would be cleared
+
             lock (_lockObject)
             {
+                if (_memoryCache is IDisposable disposableCache)
+                {
+                    disposableCache.Dispose();
+                }
+                _memoryCache = new MemoryCache(new MemoryCacheOptions());
                 _cacheAccessTimes.Clear();
             }
-            
             _logger.LogInformation("Cache cleared successfully");
         }
         catch (Exception ex)
